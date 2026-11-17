@@ -1,0 +1,19 @@
+dataset,column,description
+analysis_order_items,product_volume_cm3,length x height x width of the product
+analysis_order_items,freight_ratio,freight_value / price
+analysis_order_items,freight_per_kg,freight_value / product weight in kg
+analysis_order_items,is_cross_state,True when seller state differs from customer state
+analysis_order_items,shipping_distance_km,great-circle distance between seller and customer zip centroids
+analysis_orders,n_items / n_sellers / n_products,"number of items, distinct sellers and distinct products in the order"
+analysis_orders,total_price / total_freight / total_weight_g,sums over the order's items
+analysis_orders,freight_ratio,total_freight / total_price
+analysis_orders,approval_time_hours,order approval time minus purchase time
+analysis_orders,handling_time_days,carrier handover minus purchase
+analysis_orders,carrier_transit_days,customer delivery minus carrier handover
+analysis_orders,delivery_time_days,customer delivery minus purchase
+analysis_orders,estimated_delivery_days,estimated delivery date minus purchase
+analysis_orders,delivery_delay_days,actual minus estimated delivery (positive = late)
+analysis_orders,is_late,"1 if delivery_delay_days > 0, 0 if not, blank if not measurable"
+analysis_orders,purchase_year_month / purchase_weekday,calendar features from the purchase timestamp
+analysis_orders,avg_review_score / n_reviews,review score average and count per order
+analysis_orders,total_payment_value / max_installments,payment sum and highest installment count per order

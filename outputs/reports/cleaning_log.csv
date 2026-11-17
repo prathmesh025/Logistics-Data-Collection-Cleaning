@@ -1,0 +1,48 @@
+table,step,affected_count,detail
+category_translation,remove exact duplicate rows,0,rows identical in every column
+category_translation,normalize text in product_category_name,0,"trim, lower-case, collapse spaces"
+category_translation,normalize text in product_category_name_english,0,"trim, lower-case, collapse spaces"
+orders,remove exact duplicate rows,0,rows identical in every column
+orders,normalize text in order_status,0,"trim, lower-case, collapse spaces"
+orders,convert order_purchase_timestamp to datetime,99441,0 values could not be parsed (set to NaT)
+orders,convert order_approved_at to datetime,99281,0 values could not be parsed (set to NaT)
+orders,convert order_delivered_carrier_date to datetime,97658,0 values could not be parsed (set to NaT)
+orders,convert order_delivered_customer_date to datetime,96476,0 values could not be parsed (set to NaT)
+orders,convert order_estimated_delivery_date to datetime,99441,0 values could not be parsed (set to NaT)
+orders,flag inconsistent date order,189,approval/carrier/delivery/estimate earlier than preceding event
+orders,flag delivered orders without delivery date,8,"kept, not deleted"
+orders,flag non-delivered orders that have a delivery date,6,"kept, not deleted"
+order_items,remove exact duplicate rows,0,rows identical in every column
+order_items,convert shipping_limit_date to datetime,112650,0 values could not be parsed (set to NaT)
+order_items,flag invalid price (missing or <= 0),0,"kept, not deleted"
+order_items,flag invalid freight (missing or < 0),0,zero freight is valid (free shipping)
+customers,remove exact duplicate rows,0,rows identical in every column
+customers,zip prefix customer_zip_code_prefix to 5-character text,23995,values below 10000 had leading zeros restored
+customers,normalize text in customer_city,0,"trim, lower-case, collapse spaces, remove accents"
+customers,normalize state codes in customer_state,0,"trim, upper-case"
+sellers,remove exact duplicate rows,0,rows identical in every column
+sellers,zip prefix seller_zip_code_prefix to 5-character text,1027,values below 10000 had leading zeros restored
+sellers,normalize text in seller_city,6,"trim, lower-case, collapse spaces, remove accents"
+sellers,normalize state codes in seller_state,0,"trim, upper-case"
+products,remove exact duplicate rows,0,rows identical in every column
+products,normalize text in product_category_name,0,"trim, lower-case, collapse spaces"
+products,flag rows with missing listing metadata,610,610 of these rows miss all four metadata fields
+products,fill missing category with 'unknown',610,rows kept for analysis
+products,treat non-positive weight/dimensions as missing,4,
+products,impute weight/dimensions with category median,6,flag_size_imputed marks these rows
+products,product rows without English translation,13,Portuguese name used as fallback
+payments,remove exact duplicate rows,0,rows identical in every column
+payments,normalize text in payment_type,0,"trim, lower-case, collapse spaces"
+payments,flag invalid payment value (missing or < 0),0,"kept, not deleted"
+payments,flag invalid installments (missing or < 1),2,"kept, not deleted"
+reviews,remove exact duplicate rows,0,rows identical in every column
+reviews,convert review_creation_date to datetime,99224,0 values could not be parsed (set to NaT)
+reviews,convert review_answer_timestamp to datetime,99224,0 values could not be parsed (set to NaT)
+reviews,add has_comment_message flag,40977,missing comments left as missing (optional field)
+reviews,flag review_score outside 1-5,0,
+geolocation,remove exact duplicate rows,261831,rows identical in every column
+geolocation,zip prefix geolocation_zip_code_prefix to 5-character text,158832,values below 10000 had leading zeros restored
+geolocation,normalize text in geolocation_city,63446,"trim, lower-case, collapse spaces, remove accents"
+geolocation,normalize state codes in geolocation_state,0,"trim, upper-case"
+geolocation,remove duplicates exposed by normalization,17836,rows identical in every column
+geolocation,flag coordinates outside Brazil bounding box,33,"kept in file, excluded later when aggregating"

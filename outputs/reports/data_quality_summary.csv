@@ -1,0 +1,72 @@
+category,table,check,records_checked,violations,status,note
+Primary key,orders,order_id not null,99441,0,PASS,
+Primary key,orders,order_id unique,99441,0,PASS,number of surplus rows sharing a key
+Primary key,customers,customer_id not null,99441,0,PASS,
+Primary key,customers,customer_id unique,99441,0,PASS,number of surplus rows sharing a key
+Primary key,sellers,seller_id not null,3095,0,PASS,
+Primary key,sellers,seller_id unique,3095,0,PASS,number of surplus rows sharing a key
+Primary key,products,product_id not null,32951,0,PASS,
+Primary key,products,product_id unique,32951,0,PASS,number of surplus rows sharing a key
+Primary key,order_items,order_id + order_item_id not null,112650,0,PASS,
+Primary key,order_items,order_id + order_item_id unique,112650,0,PASS,number of surplus rows sharing a key
+Primary key,payments,order_id + payment_sequential not null,103886,0,PASS,
+Primary key,payments,order_id + payment_sequential unique,103886,0,PASS,number of surplus rows sharing a key
+Primary key,reviews,review_id not null,99224,0,PASS,
+Primary key,reviews,review_id unique,99224,814,INFO,review_id repeats across orders; see the composite key check below
+Primary key,reviews,review_id + order_id not null,99224,0,PASS,
+Primary key,reviews,review_id + order_id unique,99224,0,PASS,number of surplus rows sharing a key
+Primary key,category_translation,product_category_name not null,71,0,PASS,
+Primary key,category_translation,product_category_name unique,71,0,PASS,number of surplus rows sharing a key
+Referential integrity,orders,customer_id exists in customers.customer_id,99441,0,PASS,
+Referential integrity,order_items,order_id exists in orders.order_id,112650,0,PASS,
+Referential integrity,order_items,product_id exists in products.product_id,112650,0,PASS,
+Referential integrity,order_items,seller_id exists in sellers.seller_id,112650,0,PASS,
+Referential integrity,payments,order_id exists in orders.order_id,103886,0,PASS,
+Referential integrity,reviews,order_id exists in orders.order_id,99224,0,PASS,
+Missing values,orders,order_delivered_customer_date missing,99441,2965,INFO,not delivered (depends on order status)
+Missing values,orders,order_delivered_carrier_date missing,99441,1783,INFO,not yet handed to carrier (depends on order status)
+Missing values,orders,order_approved_at missing,99441,160,INFO,order not yet approved (depends on order status)
+Missing values,order_items,no missing values,112650,0,PASS,
+Missing values,customers,no missing values,99441,0,PASS,
+Missing values,sellers,no missing values,3095,0,PASS,
+Missing values,products,product_name_length missing,32951,610,INFO,"listing metadata not recorded; not imputed, see flag_missing_listing_metadata"
+Missing values,products,product_description_length missing,32951,610,INFO,"listing metadata not recorded; not imputed, see flag_missing_listing_metadata"
+Missing values,products,product_photos_qty missing,32951,610,INFO,"listing metadata not recorded; not imputed, see flag_missing_listing_metadata"
+Missing values,payments,no missing values,103886,0,PASS,
+Missing values,reviews,review_comment_title missing,99224,87656,INFO,optional free-text field
+Missing values,reviews,review_comment_message missing,99224,58247,INFO,optional free-text field
+Missing values,geolocation,no missing values,720496,0,PASS,
+Missing values,category_translation,no missing values,71,0,PASS,
+Duplicate rows,orders,exact duplicate rows,99441,0,PASS,
+Duplicate rows,order_items,exact duplicate rows,112650,0,PASS,
+Duplicate rows,customers,exact duplicate rows,99441,0,PASS,
+Duplicate rows,sellers,exact duplicate rows,3095,0,PASS,
+Duplicate rows,products,exact duplicate rows,32951,0,PASS,
+Duplicate rows,payments,exact duplicate rows,103886,0,PASS,
+Duplicate rows,reviews,exact duplicate rows,99224,0,PASS,
+Duplicate rows,geolocation,exact duplicate rows,720496,0,PASS,
+Duplicate rows,category_translation,exact duplicate rows,71,0,PASS,
+Date consistency,orders,approval not before purchase,99281,0,PASS,
+Date consistency,orders,carrier handover not before purchase,97658,166,FLAGGED,
+Date consistency,orders,customer delivery not before carrier handover,96475,23,FLAGGED,
+Date consistency,orders,customer delivery not before purchase,96476,0,PASS,
+Date consistency,orders,estimated delivery not before purchase,99441,0,PASS,
+Date consistency,reviews,review answer not before review creation,99224,0,PASS,
+Date consistency,orders,any date-order flag (flag_date_inconsistent),99441,189,FLAGGED,rows kept and flagged; one row can break several rules
+Numeric validity,order_items,price > 0,112650,0,PASS,
+Numeric validity,order_items,freight_value >= 0,112650,0,PASS,
+Numeric validity,order_items,freight_value not above item price,112650,4124,INFO,informational: high freight on cheap items is plausible
+Numeric validity,payments,payment_value >= 0,103886,0,PASS,
+Numeric validity,payments,payment_installments >= 1,103886,2,FLAGGED,
+Numeric validity,reviews,review_score between 1 and 5,99224,0,PASS,
+Numeric validity,products,product_weight_g > 0,32951,0,PASS,
+Numeric validity,products,product_length_cm > 0,32951,0,PASS,
+Numeric validity,products,product_height_cm > 0,32951,0,PASS,
+Numeric validity,products,product_width_cm > 0,32951,0,PASS,
+Numeric validity,geolocation,coordinates inside Brazil bounding box,720496,33,FLAGGED,
+Format,customers,customer_zip_code_prefix is 5 digits,99441,0,PASS,
+Format,sellers,seller_zip_code_prefix is 5 digits,3095,0,PASS,
+Format,geolocation,geolocation_zip_code_prefix is 5 digits,720496,0,PASS,
+Format,customers,customer_state is 2 capital letters,99441,0,PASS,
+Format,sellers,seller_state is 2 capital letters,3095,0,PASS,
+Format,geolocation,geolocation_state is 2 capital letters,720496,0,PASS,

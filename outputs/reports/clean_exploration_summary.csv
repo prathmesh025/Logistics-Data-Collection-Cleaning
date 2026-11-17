@@ -1,0 +1,10 @@
+table,rows,columns,missing_cells,missing_cells_percent,columns_with_missing,duplicate_rows,date_columns_as_text,memory_mb
+orders,99441,11,4908,0.449,3,0,0,24.94
+order_items,112650,9,0,0.0,0,0,0,29.76
+customers,99441,5,0,0.0,0,0,0,30.95
+sellers,3095,4,0,0.0,0,0,0,0.72
+products,32951,12,1830,0.463,3,0,0,8.32
+payments,103886,7,0,0.0,0,0,0,16.43
+reviews,99224,9,145903,16.338,2,0,0,27.96
+geolocation,720496,6,0,0.0,0,0,0,124.68
+category_translation,71,2,0,0.0,0,0,0,0.01

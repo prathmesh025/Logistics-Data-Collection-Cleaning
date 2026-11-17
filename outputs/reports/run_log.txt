@@ -1,0 +1,264 @@
+STEP 1: DATA COLLECTION
+Loading datasets from: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\raw
+  loaded olist_orders_dataset.csv                      rows=  99,441  cols=8
+  loaded olist_order_items_dataset.csv                 rows= 112,650  cols=7
+  loaded olist_customers_dataset.csv                   rows=  99,441  cols=5
+  loaded olist_sellers_dataset.csv                     rows=   3,095  cols=4
+  loaded olist_products_dataset.csv                    rows=  32,951  cols=9
+  loaded olist_order_payments_dataset.csv              rows= 103,886  cols=5
+  loaded olist_order_reviews_dataset.csv               rows=  99,224  cols=7
+  loaded olist_geolocation_dataset.csv                 rows=1,000,163  cols=5
+  loaded product_category_name_translation.csv         rows=      71  cols=2
+
+STEP 2: DATA EXPLORATION (raw data)
+
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\reports\raw_exploration_summary.csv
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\reports\raw_missing_values.csv
+Full exploration log: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\reports\raw_exploration_log.txt
+               table    rows  columns  missing_cells  missing_cells_percent  columns_with_missing  duplicate_rows  date_columns_as_text  memory_mb
+              orders   99441        8           4908                  0.617                     3               0                     5      52.94
+         order_items  112650        7              0                  0.000                     0               0                     1      35.99
+           customers   99441        5              0                  0.000                     0               0                     0      26.59
+             sellers    3095        4              0                  0.000                     0               0                     0       0.59
+            products   32951        9           2448                  0.825                     8               0                     0       6.30
+            payments  103886        5              0                  0.000                     0               0                     0      16.23
+             reviews   99224        7         145903                 21.006                     2               0                     2      39.12
+         geolocation 1000163        5              0                  0.000                     0          261831                     0     130.26
+category_translation      71        2              0                  0.000                     0               0                     0       0.01
+
+STEP 3: DATA CLEANING
+
+Order status vs missing delivery date:
+delivered_date_missing  False  True 
+order_status                        
+approved                    0      2
+canceled                    6    619
+created                     0      5
+delivered               96470      8
+invoiced                    0    314
+processing                  0    301
+shipped                     0   1107
+unavailable                 0    609
+
+CLEANING LOG
+               table                                                       step  affected_count                                                          detail
+category_translation                                remove exact duplicate rows               0                                  rows identical in every column
+category_translation                    normalize text in product_category_name               0                               trim, lower-case, collapse spaces
+category_translation            normalize text in product_category_name_english               0                               trim, lower-case, collapse spaces
+              orders                                remove exact duplicate rows               0                                  rows identical in every column
+              orders                             normalize text in order_status               0                               trim, lower-case, collapse spaces
+              orders               convert order_purchase_timestamp to datetime           99441                       0 values could not be parsed (set to NaT)
+              orders                      convert order_approved_at to datetime           99281                       0 values could not be parsed (set to NaT)
+              orders           convert order_delivered_carrier_date to datetime           97658                       0 values could not be parsed (set to NaT)
+              orders          convert order_delivered_customer_date to datetime           96476                       0 values could not be parsed (set to NaT)
+              orders          convert order_estimated_delivery_date to datetime           99441                       0 values could not be parsed (set to NaT)
+              orders                               flag inconsistent date order             189 approval/carrier/delivery/estimate earlier than preceding event
+              orders                flag delivered orders without delivery date               8                                               kept, not deleted
+              orders        flag non-delivered orders that have a delivery date               6                                               kept, not deleted
+         order_items                                remove exact duplicate rows               0                                  rows identical in every column
+         order_items                    convert shipping_limit_date to datetime          112650                       0 values could not be parsed (set to NaT)
+         order_items                       flag invalid price (missing or <= 0)               0                                               kept, not deleted
+         order_items                      flag invalid freight (missing or < 0)               0                           zero freight is valid (free shipping)
+           customers                                remove exact duplicate rows               0                                  rows identical in every column
+           customers    zip prefix customer_zip_code_prefix to 5-character text           23995                   values below 10000 had leading zeros restored
+           customers                            normalize text in customer_city               0               trim, lower-case, collapse spaces, remove accents
+           customers                    normalize state codes in customer_state               0                                                trim, upper-case
+             sellers                                remove exact duplicate rows               0                                  rows identical in every column
+             sellers      zip prefix seller_zip_code_prefix to 5-character text            1027                   values below 10000 had leading zeros restored
+             sellers                              normalize text in seller_city               6               trim, lower-case, collapse spaces, remove accents
+             sellers                      normalize state codes in seller_state               0                                                trim, upper-case
+            products                                remove exact duplicate rows               0                                  rows identical in every column
+            products                    normalize text in product_category_name               0                               trim, lower-case, collapse spaces
+            products                    flag rows with missing listing metadata             610                 610 of these rows miss all four metadata fields
+            products                       fill missing category with 'unknown'             610                                          rows kept for analysis
+            products            treat non-positive weight/dimensions as missing               4                                                                
+            products              impute weight/dimensions with category median               6                              flag_size_imputed marks these rows
+            products                   product rows without English translation              13                                Portuguese name used as fallback
+            payments                                remove exact duplicate rows               0                                  rows identical in every column
+            payments                             normalize text in payment_type               0                               trim, lower-case, collapse spaces
+            payments                flag invalid payment value (missing or < 0)               0                                               kept, not deleted
+            payments                 flag invalid installments (missing or < 1)               2                                               kept, not deleted
+             reviews                                remove exact duplicate rows               0                                  rows identical in every column
+             reviews                   convert review_creation_date to datetime           99224                       0 values could not be parsed (set to NaT)
+             reviews                convert review_answer_timestamp to datetime           99224                       0 values could not be parsed (set to NaT)
+             reviews                               add has_comment_message flag           40977               missing comments left as missing (optional field)
+             reviews                              flag review_score outside 1-5               0                                                                
+         geolocation                                remove exact duplicate rows          261831                                  rows identical in every column
+         geolocation zip prefix geolocation_zip_code_prefix to 5-character text          158832                   values below 10000 had leading zeros restored
+         geolocation                         normalize text in geolocation_city           63446               trim, lower-case, collapse spaces, remove accents
+         geolocation                 normalize state codes in geolocation_state               0                                                trim, upper-case
+         geolocation                 remove duplicates exposed by normalization           17836                                  rows identical in every column
+         geolocation               flag coordinates outside Brazil bounding box              33                   kept in file, excluded later when aggregating
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_category_translation.csv  (71 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_orders.csv  (99,441 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_order_items.csv  (112,650 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_customers.csv  (99,441 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_sellers.csv  (3,095 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_products.csv  (32,951 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_payments.csv  (103,886 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_reviews.csv  (99,224 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\clean_geolocation.csv  (720,496 rows)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\reports\cleaning_log.csv
+
+STEP 4: DATA VALIDATION (reading cleaned files back from disk)
+
+DATA QUALITY SUMMARY (all checks)
+             category                table                                         check  records_checked  violations  status                                                                          note
+          Primary key               orders                             order_id not null            99441           0    PASS                                                                              
+          Primary key               orders                               order_id unique            99441           0    PASS                                          number of surplus rows sharing a key
+          Primary key            customers                          customer_id not null            99441           0    PASS                                                                              
+          Primary key            customers                            customer_id unique            99441           0    PASS                                          number of surplus rows sharing a key
+          Primary key              sellers                            seller_id not null             3095           0    PASS                                                                              
+          Primary key              sellers                              seller_id unique             3095           0    PASS                                          number of surplus rows sharing a key
+          Primary key             products                           product_id not null            32951           0    PASS                                                                              
+          Primary key             products                             product_id unique            32951           0    PASS                                          number of surplus rows sharing a key
+          Primary key          order_items             order_id + order_item_id not null           112650           0    PASS                                                                              
+          Primary key          order_items               order_id + order_item_id unique           112650           0    PASS                                          number of surplus rows sharing a key
+          Primary key             payments        order_id + payment_sequential not null           103886           0    PASS                                                                              
+          Primary key             payments          order_id + payment_sequential unique           103886           0    PASS                                          number of surplus rows sharing a key
+          Primary key              reviews                            review_id not null            99224           0    PASS                                                                              
+          Primary key              reviews                              review_id unique            99224         814    INFO            review_id repeats across orders; see the composite key check below
+          Primary key              reviews                 review_id + order_id not null            99224           0    PASS                                                                              
+          Primary key              reviews                   review_id + order_id unique            99224           0    PASS                                          number of surplus rows sharing a key
+          Primary key category_translation                product_category_name not null               71           0    PASS                                                                              
+          Primary key category_translation                  product_category_name unique               71           0    PASS                                          number of surplus rows sharing a key
+Referential integrity               orders   customer_id exists in customers.customer_id            99441           0    PASS                                                                              
+Referential integrity          order_items            order_id exists in orders.order_id           112650           0    PASS                                                                              
+Referential integrity          order_items      product_id exists in products.product_id           112650           0    PASS                                                                              
+Referential integrity          order_items         seller_id exists in sellers.seller_id           112650           0    PASS                                                                              
+Referential integrity             payments            order_id exists in orders.order_id           103886           0    PASS                                                                              
+Referential integrity              reviews            order_id exists in orders.order_id            99224           0    PASS                                                                              
+       Missing values               orders         order_delivered_customer_date missing            99441        2965    INFO                                       not delivered (depends on order status)
+       Missing values               orders          order_delivered_carrier_date missing            99441        1783    INFO                           not yet handed to carrier (depends on order status)
+       Missing values               orders                     order_approved_at missing            99441         160    INFO                              order not yet approved (depends on order status)
+       Missing values          order_items                             no missing values           112650           0    PASS                                                                              
+       Missing values            customers                             no missing values            99441           0    PASS                                                                              
+       Missing values              sellers                             no missing values             3095           0    PASS                                                                              
+       Missing values             products                   product_name_length missing            32951         610    INFO listing metadata not recorded; not imputed, see flag_missing_listing_metadata
+       Missing values             products            product_description_length missing            32951         610    INFO listing metadata not recorded; not imputed, see flag_missing_listing_metadata
+       Missing values             products                    product_photos_qty missing            32951         610    INFO listing metadata not recorded; not imputed, see flag_missing_listing_metadata
+       Missing values             payments                             no missing values           103886           0    PASS                                                                              
+       Missing values              reviews                  review_comment_title missing            99224       87656    INFO                                                      optional free-text field
+       Missing values              reviews                review_comment_message missing            99224       58247    INFO                                                      optional free-text field
+       Missing values          geolocation                             no missing values           720496           0    PASS                                                                              
+       Missing values category_translation                             no missing values               71           0    PASS                                                                              
+       Duplicate rows               orders                          exact duplicate rows            99441           0    PASS                                                                              
+       Duplicate rows          order_items                          exact duplicate rows           112650           0    PASS                                                                              
+       Duplicate rows            customers                          exact duplicate rows            99441           0    PASS                                                                              
+       Duplicate rows              sellers                          exact duplicate rows             3095           0    PASS                                                                              
+       Duplicate rows             products                          exact duplicate rows            32951           0    PASS                                                                              
+       Duplicate rows             payments                          exact duplicate rows           103886           0    PASS                                                                              
+       Duplicate rows              reviews                          exact duplicate rows            99224           0    PASS                                                                              
+       Duplicate rows          geolocation                          exact duplicate rows           720496           0    PASS                                                                              
+       Duplicate rows category_translation                          exact duplicate rows               71           0    PASS                                                                              
+     Date consistency               orders                  approval not before purchase            99281           0    PASS                                                                              
+     Date consistency               orders          carrier handover not before purchase            97658         166 FLAGGED                                                                              
+     Date consistency               orders customer delivery not before carrier handover            96475          23 FLAGGED                                                                              
+     Date consistency               orders         customer delivery not before purchase            96476           0    PASS                                                                              
+     Date consistency               orders        estimated delivery not before purchase            99441           0    PASS                                                                              
+     Date consistency              reviews      review answer not before review creation            99224           0    PASS                                                                              
+     Date consistency               orders  any date-order flag (flag_date_inconsistent)            99441         189 FLAGGED                        rows kept and flagged; one row can break several rules
+     Numeric validity          order_items                                     price > 0           112650           0    PASS                                                                              
+     Numeric validity          order_items                            freight_value >= 0           112650           0    PASS                                                                              
+     Numeric validity          order_items            freight_value not above item price           112650        4124    INFO                       informational: high freight on cheap items is plausible
+     Numeric validity             payments                            payment_value >= 0           103886           0    PASS                                                                              
+     Numeric validity             payments                     payment_installments >= 1           103886           2 FLAGGED                                                                              
+     Numeric validity              reviews                  review_score between 1 and 5            99224           0    PASS                                                                              
+     Numeric validity             products                          product_weight_g > 0            32951           0    PASS                                                                              
+     Numeric validity             products                         product_length_cm > 0            32951           0    PASS                                                                              
+     Numeric validity             products                         product_height_cm > 0            32951           0    PASS                                                                              
+     Numeric validity             products                          product_width_cm > 0            32951           0    PASS                                                                              
+     Numeric validity          geolocation        coordinates inside Brazil bounding box           720496          33 FLAGGED                                                                              
+               Format            customers          customer_zip_code_prefix is 5 digits            99441           0    PASS                                                                              
+               Format              sellers            seller_zip_code_prefix is 5 digits             3095           0    PASS                                                                              
+               Format          geolocation       geolocation_zip_code_prefix is 5 digits           720496           0    PASS                                                                              
+               Format            customers           customer_state is 2 capital letters            99441           0    PASS                                                                              
+               Format              sellers             seller_state is 2 capital letters             3095           0    PASS                                                                              
+               Format          geolocation        geolocation_state is 2 capital letters           720496           0    PASS                                                                              
+
+Status counts:
+status
+PASS       56
+INFO       10
+FLAGGED     5
+
+CLEANED DATA: TABLE SUMMARY
+               table   rows  columns  missing_cells  missing_cells_percent  columns_with_missing  duplicate_rows  date_columns_as_text  memory_mb
+              orders  99441       11           4908                  0.449                     3               0                     0      24.94
+         order_items 112650        9              0                  0.000                     0               0                     0      29.76
+           customers  99441        5              0                  0.000                     0               0                     0      30.95
+             sellers   3095        4              0                  0.000                     0               0                     0       0.72
+            products  32951       12           1830                  0.463                     3               0                     0       8.32
+            payments 103886        7              0                  0.000                     0               0                     0      16.43
+             reviews  99224        9         145903                 16.338                     2               0                     0      27.96
+         geolocation 720496        6              0                  0.000                     0               0                     0     124.68
+category_translation     71        2              0                  0.000                     0               0                     0       0.01
+
+Saved reports to: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\reports
+
+BEFORE vs AFTER CLEANING
+               table  rows_before  columns_before  missing_cells_before  duplicate_rows_before  date_columns_as_text_before  rows_after  columns_after  missing_cells_after  duplicate_rows_after  date_columns_as_text_after
+              orders        99441               8                  4908                      0                            5       99441             11                 4908                     0                           0
+         order_items       112650               7                     0                      0                            1      112650              9                    0                     0                           0
+           customers        99441               5                     0                      0                            0       99441              5                    0                     0                           0
+             sellers         3095               4                     0                      0                            0        3095              4                    0                     0                           0
+            products        32951               9                  2448                      0                            0       32951             12                 1830                     0                           0
+            payments       103886               5                     0                      0                            0      103886              7                    0                     0                           0
+             reviews        99224               7                145903                      0                            2       99224              9               145903                     0                           0
+         geolocation      1000163               5                     0                 261831                            0      720496              6                    0                     0                           0
+category_translation           71               2                     0                      0                            0          71              2                    0                     0                           0
+
+STEP 5: DATA TRANSFORMATION
+
+TRANSFORMATION SUMMARY
+analysis_orders:      99,441 rows x 38 columns
+analysis_order_items: 112,650 rows x 25 columns
+
+Derived order-level columns (count, mean, min, max):
+                            count    mean     min      max
+approval_time_hours       99092.0   10.43    0.00  4509.18
+handling_time_days        97469.0    3.24    0.00   125.78
+carrier_transit_days      96281.0    9.33    0.00   205.19
+delivery_time_days        96282.0   12.57    0.53   209.63
+estimated_delivery_days   99252.0   23.77    1.65   155.14
+delivery_delay_days       96282.0  -11.17 -146.02   188.98
+freight_ratio             98666.0    0.31    0.00    21.45
+avg_shipping_distance_km  98176.0  601.31    0.00  3579.85
+avg_review_score          98673.0    4.09    1.00     5.00
+
+Orders marked late (is_late):
+is_late
+0       88459
+1        7823
+<NA>     3159
+
+Orders with no items: 775
+Items with unknown shipping distance: 555
+
+Status of orders that have no items:
+order_status
+unavailable    603
+canceled       164
+created          5
+invoiced         2
+shipped          1
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\analysis_orders.csv  (99,441 rows x 38 columns)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\analysis_order_items.csv  (112,650 rows x 25 columns)
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\data\processed\geolocation_zip_centroids.csv  (19,010 rows x 4 columns)
+
+STEP 6: VISUALIZATION
+
+Creating visualizations...
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\01_missing_values_raw.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\02_before_after_cleaning.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\03_validation_results.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\04_order_status.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\05_monthly_orders.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\06_delivery_time_distribution.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\07_delivery_delay_distribution.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\08_late_delivery_by_state.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\09_freight_vs_distance.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\10_review_score_by_lateness.png
+Saved: D:\YuvaIntern_Internships\Logistics Data Science Analyst Internship in Jaipur\Logistics-Data-Collection-Cleaning\outputs\visualizations\11_correlation_heatmap.png
+
+PIPELINE COMPLETE
